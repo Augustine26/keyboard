@@ -1,0 +1,23 @@
+name: Build CMLD Windows app
+on:
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check index.html is the CMLD version
+        shell: bash
+        run: |
+          ls -l index.html
+          grep -q "Version 1.1 · CMLD" index.html || { echo "ERROR: index.html in the repository is not the CMLD version. Upload the new index.html."; exit 1; }
+          if grep -q "CHANGE-ME@example.org" index.html; then echo "NOTE: admin email is still the placeholder. Set it in Admin > Online service, or edit index.html."; fi
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm install
+      - run: npx electron-builder --win --publish never
+      - uses: actions/upload-artifact@v4
+        with:
+          name: CMLD-Keyboard-Trainer-Windows-run${{ github.run_number }}
+          path: dist/*.exe
